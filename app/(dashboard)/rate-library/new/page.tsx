@@ -1,0 +1,1 @@
+import { RateForm } from "@/components/rate-form";import { PageHeader } from "@/components/ui";import { getAuthContext } from "@/lib/data";export default async function NewRatePage(){const{company}=await getAuthContext();return <><PageHeader title="New Service" description="Add a reusable service to your rate library."/><RateForm company={company!}/></>}

@@ -43,4 +43,3 @@ npm run build
 ```
 
 Live authentication and RLS checks require a configured Supabase project. Validate with two test accounts: create one company and customer under each account, then confirm each account can only query and mutate its own records.
-
