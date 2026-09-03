@@ -1,6 +1,6 @@
 export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[];
 
-export type EstimateStatus = "draft" | "sent" | "approved";
+export type EstimateStatus = "draft" | "sent" | "viewed" | "approved" | "rejected" | "expired";
 
 export interface Company extends Record<string, unknown> {
   id: string; owner_id: string; name: string; owner_name: string; logo_url: string | null;
@@ -20,7 +20,8 @@ export interface JobSite extends Record<string, unknown> {
 export interface RateLibraryItem extends Record<string, unknown> {
   id: string; company_id: string; category: string; service_name: string; description: string | null; unit: string;
   material_cost_per_unit: number; labor_hours_per_unit: number; labor_rate: number; waste_percent: number;
-  equipment_cost: number; default_overhead: number; default_markup: number; taxable: boolean; created_at: string; updated_at: string;
+  equipment_cost: number; subcontractor_cost: number; other_direct_cost: number; default_overhead: number; default_markup: number;
+  taxable: boolean; is_sample: boolean; created_at: string; updated_at: string;
 }
 export interface Estimate extends Record<string, unknown> {
   id: string; company_id: string; customer_id: string; job_site_id: string | null; estimate_number: string;
@@ -32,8 +33,8 @@ export interface Estimate extends Record<string, unknown> {
 }
 export interface EstimateItem extends Record<string, unknown> {
   id: string; estimate_id: string; company_id: string; rate_library_id: string | null; sort_order: number; category: string;
-  phase: string | null; description: string; customer_description: string | null; unit: string; quantity: number; waste_percent: number;
-  material_unit_cost: number; labor_hours: number; labor_rate: number; equipment_cost: number; subcontractor_cost: number;
+  phase: string | null; service_name: string; description: string; customer_description: string | null; internal_notes: string | null;
+  unit: string; quantity: number; waste_percent: number; material_unit_cost: number; labor_hours_per_unit: number; labor_hours: number; labor_rate: number; equipment_cost: number; subcontractor_cost: number;
   other_direct_cost: number; taxable: boolean; overhead_percent: number; profit_markup_percent: number; adjusted_quantity: number;
   material_cost: number; labor_cost: number; direct_cost: number; overhead_amount: number; cost_after_overhead: number;
   profit_amount: number; selling_price: number; created_at: string;

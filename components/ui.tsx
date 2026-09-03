@@ -26,8 +26,8 @@ export function PageHeader({ title, description, action }: { title: string; desc
   return <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between"><div><h1 className="text-2xl font-bold tracking-tight text-slate-900 sm:text-3xl">{title}</h1>{description && <p className="mt-1 text-sm text-slate-500">{description}</p>}</div>{action}</div>;
 }
 
-export function Badge({ children, tone = "slate" }: { children: React.ReactNode; tone?: "slate" | "orange" | "blue" | "green" }) {
-  const styles = { slate: "bg-slate-100 text-slate-700", orange: "bg-orange-50 text-orange-700", blue: "bg-blue-50 text-blue-700", green: "bg-emerald-50 text-emerald-700" };
+export function Badge({ children, tone = "slate" }: { children: React.ReactNode; tone?: "slate" | "orange" | "blue" | "green" | "red" }) {
+  const styles = { slate: "bg-slate-100 text-slate-700", orange: "bg-orange-50 text-orange-700", blue: "bg-blue-50 text-blue-700", green: "bg-emerald-50 text-emerald-700", red: "bg-red-50 text-red-700" };
   return <span className={cn("inline-flex rounded-full px-2.5 py-1 text-xs font-semibold capitalize", styles[tone])}>{children}</span>;
 }
 

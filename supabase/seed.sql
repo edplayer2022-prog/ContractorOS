@@ -1,3 +1,3 @@
--- Optional starter services. Replace COMPANY_ID after creating a company.
--- insert into public.rate_library (company_id, category, service_name, description, unit, material_cost_per_unit, labor_hours_per_unit, labor_rate, waste_percent, equipment_cost, default_overhead, default_markup, taxable)
--- values ('COMPANY_ID', 'Painting', 'Interior wall painting', 'Prep and apply two finish coats', 'sq ft', 0.45, 0.015, 55, 10, 0, 12, 25, true);
+-- Demonstration services are installed automatically per company by
+-- 20260903000000_estimate_builder_rate_library.sql.
+-- All sample values are fictional and must not be treated as market pricing.
