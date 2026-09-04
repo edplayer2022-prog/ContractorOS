@@ -22,9 +22,16 @@ body {
 button, input, textarea, select { font: inherit; }
 button { cursor: pointer; }
 ::selection { background: #fed7aa; }
+table { width: 100%; border-collapse: collapse; font-size: .875rem; }
+th { background: #f8fafc; color: #64748b; font-size: .7rem; letter-spacing: .04em; text-align: left; text-transform: uppercase; }
+th, td { border-bottom: 1px solid #e2e8f0; padding: .8rem 1rem; white-space: nowrap; }
+tbody tr:hover { background: #f8fafc; }
 
 @media print {
   .no-print { display: none !important; }
   body { background: white; }
+  main { padding: 0 !important; }
+  .lg\:pl-64 { padding-left: 0 !important; }
+  .shadow-sm { box-shadow: none !important; }
   @page { size: letter; margin: 0.45in; }
 }

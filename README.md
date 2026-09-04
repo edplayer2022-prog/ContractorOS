@@ -17,9 +17,12 @@ Mobile-first estimating MVP for small contractors in the United States. Built wi
 - Project costs, estimated-vs-actual tracking, overdue invoice indicators, and financial audit events
 - Estimate activity timeline for sent, viewed, approved, rejected, expired, and change-order events
 - Dashboard metrics and recent activity
+- Executive dashboard with period comparisons, revenue trend, and financial KPIs
+- Sales, estimates, projects, invoices, AR aging, payments, profitability, and customer reports
+- Company-local date filters, project health rules, cost budget variance, CSV export, and print-friendly reports
 - Owner-scoped PostgreSQL RLS on every business table
 
-Live payment processing, accounting integrations, advanced reports, teams, subscription billing, and AI are intentionally excluded from this version.
+Live payment processing, accounting integrations, teams, subscription billing, payroll, and AI are intentionally excluded from this version.
 
 ## Local setup
 
@@ -31,6 +34,7 @@ Live payment processing, accounting integrations, advanced reports, teams, subsc
    - `supabase/migrations/20260904000000_preserve_view_count_on_approval.sql`
    - `supabase/migrations/20260905000000_projects_invoices_payments.sql`
    - `supabase/migrations/20260905010000_financial_write_hardening.sql`
+   - `supabase/migrations/20260906000000_reporting_analytics.sql`
 3. Copy `.env.example` to `.env.local` and add the project URL and anon key.
 4. Add `NEXT_PUBLIC_SITE_URL=http://localhost:3000` to `.env.local`.
 5. In Supabase Auth URL Configuration, add `http://localhost:3000/auth/callback` as a redirect URL.
@@ -66,6 +70,12 @@ Payments are manual records only; ContractorOS does not process money. Active pa
 
 Public invoice links use revocable UUID tokens and a customer-safe PostgreSQL projection. They never expose internal notes, costs, overhead, markup, profit, or margin.
 
+## Reporting rules
+
+Dashboard and Reports date ranges use the company IANA timezone. Approval rate is `approved / (approved + rejected + expired)` and safely returns zero when no estimate is eligible. Cancelled projects are excluded from principal profitability metrics. AR aging includes only non-void invoices with an outstanding balance and uses Current, 1–30, 31–60, 61–90, and 90+ day buckets.
+
+Project health is deterministic: Healthy means projected margin remains within three percentage points of estimated margin; Watch means actual costs reached 85% of estimated cost or margin moved beyond that tolerance; At Risk means actual cost exceeds estimated cost or projected profit is negative. CSV downloads execute on the server with the authenticated Supabase session and inherit company-scoped RLS.
+
 ## Validation
 
 ```bash
@@ -76,4 +86,3 @@ npm run build
 ```
 
 Live authentication and RLS checks require a configured Supabase project. Validate with two test accounts: create one company and customer under each account, then confirm each account can only query and mutate its own records.
-

@@ -12,6 +12,7 @@ export interface Company extends Record<string, unknown> {
   id: string; owner_id: string; name: string; owner_name: string; logo_url: string | null;
   address: string | null; city: string | null; state: string | null; zip: string | null;
   phone: string | null; email: string | null; website: string | null; contractor_license: string | null;
+  timezone: string;
   default_sales_tax: number; default_overhead: number; default_profit_markup: number; default_deposit: number;
   estimate_validity_days: number; created_at: string; updated_at: string;
 }
@@ -125,4 +126,3 @@ export interface Database {
     CompositeTypes: Record<string, never>;
   };
 }
-
