@@ -1,6 +1,7 @@
 export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[];
 
 export type EstimateStatus = "draft" | "sent" | "viewed" | "approved" | "rejected" | "expired";
+export type ChangeOrderStatus = "draft" | "sent" | "viewed" | "approved" | "rejected";
 
 export interface Company extends Record<string, unknown> {
   id: string; owner_id: string; name: string; owner_name: string; logo_url: string | null;
@@ -29,7 +30,28 @@ export interface Estimate extends Record<string, unknown> {
   internal_notes: string | null; customer_notes: string | null; discount_type: "fixed" | "percent"; discount_value: number;
   sales_tax_percent: number; deposit_percent: number; estimated_start_date: string | null; estimated_completion_date: string | null;
   payment_terms: string | null; inclusions: string | null; exclusions: string | null; subtotal: number; discount_amount: number;
-  sales_tax_amount: number; total: number; deposit_required: number; remaining_balance: number; created_at: string; updated_at: string;
+  sales_tax_amount: number; total: number; deposit_required: number; remaining_balance: number; public_token: string | null;
+  public_token_revoked_at: string | null; sent_at: string | null; first_viewed_at: string | null; last_viewed_at: string | null;
+  view_count: number; approved_at: string | null; approved_by_name: string | null; approved_by_email: string | null;
+  rejected_at: string | null; rejection_reason: string | null; rejection_comments: string | null; created_at: string; updated_at: string;
+}
+
+export interface ChangeOrder extends Record<string, unknown> {
+  id: string; company_id: string; estimate_id: string; change_order_number: string; change_date: string; description: string;
+  status: ChangeOrderStatus; public_token: string | null; public_token_revoked_at: string | null; subtotal: number;
+  sales_tax_percent: number; sales_tax_amount: number; total: number; original_contract_value: number;
+  previous_changes_value: number; new_contract_value: number; sent_at: string | null; first_viewed_at: string | null;
+  last_viewed_at: string | null; view_count: number; approved_at: string | null; approved_by_name: string | null;
+  approved_by_email: string | null; rejected_at: string | null; rejection_reason: string | null;
+  rejection_comments: string | null; created_at: string; updated_at: string;
+}
+export interface ChangeOrderItem extends Record<string, unknown> {
+  id: string; change_order_id: string; company_id: string; sort_order: number; description: string; quantity: number;
+  unit: string; unit_price: number; taxable: boolean; amount: number; created_at: string;
+}
+export interface EstimateEvent extends Record<string, unknown> {
+  id: number; company_id: string; estimate_id: string; change_order_id: string | null; event_type: string;
+  metadata: Json; created_at: string;
 }
 export interface EstimateItem extends Record<string, unknown> {
   id: string; estimate_id: string; company_id: string; rate_library_id: string | null; sort_order: number; category: string;
@@ -49,8 +71,30 @@ export interface Database {
       rate_library: { Row: RateLibraryItem; Insert: Partial<RateLibraryItem> & Pick<RateLibraryItem,"company_id"|"category"|"service_name"|"unit">; Update: Partial<RateLibraryItem>; Relationships: [{ foreignKeyName:"rate_library_company_id_fkey"; columns:["company_id"]; isOneToOne:false; referencedRelation:"companies"; referencedColumns:["id"] }] };
       estimates: { Row: Estimate; Insert: Partial<Estimate> & Pick<Estimate,"company_id"|"customer_id"|"estimate_number"|"estimate_date"|"valid_until"|"project_name">; Update: Partial<Estimate>; Relationships: [{ foreignKeyName:"estimates_company_id_fkey"; columns:["company_id"]; isOneToOne:false; referencedRelation:"companies"; referencedColumns:["id"] },{ foreignKeyName:"estimates_customer_id_fkey"; columns:["customer_id"]; isOneToOne:false; referencedRelation:"customers"; referencedColumns:["id"] },{ foreignKeyName:"estimates_job_site_id_fkey"; columns:["job_site_id"]; isOneToOne:false; referencedRelation:"job_sites"; referencedColumns:["id"] }] };
       estimate_items: { Row: EstimateItem; Insert: Partial<EstimateItem> & Pick<EstimateItem,"estimate_id"|"company_id"|"category"|"description"|"unit">; Update: Partial<EstimateItem>; Relationships: [{ foreignKeyName:"estimate_items_estimate_id_fkey"; columns:["estimate_id"]; isOneToOne:false; referencedRelation:"estimates"; referencedColumns:["id"] },{ foreignKeyName:"estimate_items_company_id_fkey"; columns:["company_id"]; isOneToOne:false; referencedRelation:"companies"; referencedColumns:["id"] },{ foreignKeyName:"estimate_items_rate_library_id_fkey"; columns:["rate_library_id"]; isOneToOne:false; referencedRelation:"rate_library"; referencedColumns:["id"] }] };
+      change_orders: { Row: ChangeOrder; Insert: Partial<ChangeOrder> & Pick<ChangeOrder,"company_id"|"estimate_id"|"change_order_number"|"change_date"|"description">; Update: Partial<ChangeOrder>; Relationships: [] };
+      change_order_items: { Row: ChangeOrderItem; Insert: Partial<ChangeOrderItem> & Pick<ChangeOrderItem,"change_order_id"|"company_id"|"description"|"unit">; Update: Partial<ChangeOrderItem>; Relationships: [] };
+      estimate_events: { Row: EstimateEvent; Insert: Partial<EstimateEvent> & Pick<EstimateEvent,"company_id"|"estimate_id"|"event_type">; Update: Partial<EstimateEvent>; Relationships: [] };
+      estimate_approvals: { Row: Record<string, unknown>; Insert: Record<string, unknown>; Update: Record<string, unknown>; Relationships: [] };
+      estimate_snapshots: { Row: Record<string, unknown>; Insert: Record<string, unknown>; Update: Record<string, unknown>; Relationships: [] };
+      change_order_approvals: { Row: Record<string, unknown>; Insert: Record<string, unknown>; Update: Record<string, unknown>; Relationships: [] };
+      change_order_snapshots: { Row: Record<string, unknown>; Insert: Record<string, unknown>; Update: Record<string, unknown>; Relationships: [] };
+      public_request_log: { Row: Record<string, unknown>; Insert: Record<string, unknown>; Update: Record<string, unknown>; Relationships: [] };
       users: { Row: { id: string; company_id: string | null; full_name: string | null; created_at: string }; Insert: { id: string; company_id?: string | null; full_name?: string | null }; Update: { company_id?: string | null; full_name?: string | null }; Relationships: [] };
     };
-    Views: Record<string, never>; Functions: Record<string, never>; Enums: Record<string, never>; CompositeTypes: Record<string, never>;
+    Views: Record<string, never>;
+    Functions: {
+      send_estimate: { Args: { target_estimate_id: string }; Returns: string };
+      extend_estimate_expiration: { Args: { target_estimate_id: string; new_valid_until: string }; Returns: undefined };
+      duplicate_estimate: { Args: { target_estimate_id: string }; Returns: string };
+      get_public_estimate: { Args: { target_token: string; raw_ip?: string | null }; Returns: Json };
+      approve_public_estimate: { Args: { target_token: string; signer_name: string; signer_email: string; signature_kind: "drawn"|"typed"; signature_value: string; accepted_terms: boolean; request_user_agent?: string | null; raw_ip?: string | null }; Returns: Json };
+      reject_public_estimate: { Args: { target_token: string; reason?: string | null; comments?: string | null; raw_ip?: string | null }; Returns: undefined };
+      send_change_order: { Args: { target_change_order_id: string }; Returns: string };
+      get_public_change_order: { Args: { target_token: string; raw_ip?: string | null }; Returns: Json };
+      approve_public_change_order: { Args: { target_token: string; signer_name: string; signer_email: string; signature_kind: "drawn"|"typed"; signature_value: string; accepted_terms: boolean; request_user_agent?: string | null; raw_ip?: string | null }; Returns: Json };
+      reject_public_change_order: { Args: { target_token: string; reason?: string | null; comments?: string | null; raw_ip?: string | null }; Returns: undefined };
+    };
+    Enums: { estimate_status: EstimateStatus; change_order_status: ChangeOrderStatus; discount_type: "fixed"|"percent"; signature_type: "drawn"|"typed" };
+    CompositeTypes: Record<string, never>;
   };
 }

@@ -17,8 +17,8 @@ export async function updateSession(request: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser();
   const path = request.nextUrl.pathname;
   const isAuth = path.startsWith("/login") || path.startsWith("/sign-up") || path.startsWith("/forgot-password") || path.startsWith("/reset-password") || path.startsWith("/auth/");
-  const isPublicEstimate = path.startsWith("/estimate/");
-  if (!user && !isAuth && !isPublicEstimate) return NextResponse.redirect(new URL("/login", request.url));
+  const isPublicDocument = path.startsWith("/estimate/view/") || path.startsWith("/change-order/view/") || path.startsWith("/api/public/");
+  if (!user && !isAuth && !isPublicDocument) return NextResponse.redirect(new URL("/login", request.url));
   if (user && isAuth) return NextResponse.redirect(new URL("/dashboard", request.url));
   return response;
 }
