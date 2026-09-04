@@ -11,11 +11,15 @@ Mobile-first estimating MVP for small contractors in the United States. Built wi
 - Professional estimate builder with multiple reorderable/duplicable line items, per-unit labor, private costing, live margin, six statuses, discount, tax, and deposit
 - Secure customer estimate links with view tracking, approve/decline, touch signature, immutable approval snapshot, and Letter-size PDF styling
 - Change Orders linked to approved estimates with customer approval, signatures, snapshots, and updated contract value
+- Approved estimate conversion to Projects with contract, invoicing, payment, profitability, and actual-cost summaries
+- Deposit, progress, final, and custom invoices with secure customer links and Letter-size PDF styling
+- Manual payments, protected overpayment confirmation, payment void history, and printable receipts
+- Project costs, estimated-vs-actual tracking, overdue invoice indicators, and financial audit events
 - Estimate activity timeline for sent, viewed, approved, rejected, expired, and change-order events
 - Dashboard metrics and recent activity
 - Owner-scoped PostgreSQL RLS on every business table
 
-Invoices, payments, reports, projects, and AI are intentionally excluded from this MVP.
+Live payment processing, accounting integrations, advanced reports, teams, subscription billing, and AI are intentionally excluded from this version.
 
 ## Local setup
 
@@ -25,6 +29,8 @@ Invoices, payments, reports, projects, and AI are intentionally excluded from th
    - `supabase/migrations/20260903000000_estimate_builder_rate_library.sql`
    - `supabase/migrations/20260903010000_customer_approvals_change_orders.sql`
    - `supabase/migrations/20260904000000_preserve_view_count_on_approval.sql`
+   - `supabase/migrations/20260905000000_projects_invoices_payments.sql`
+   - `supabase/migrations/20260905010000_financial_write_hardening.sql`
 3. Copy `.env.example` to `.env.local` and add the project URL and anon key.
 4. Add `NEXT_PUBLIC_SITE_URL=http://localhost:3000` to `.env.local`.
 5. In Supabase Auth URL Configuration, add `http://localhost:3000/auth/callback` as a redirect URL.
@@ -52,6 +58,14 @@ PDF downloads use the browser's native print-to-PDF workflow with US Letter prin
 
 Change Order contract value is `original approved estimate + previously approved change orders + current change order`. Tax applies only to taxable Change Order items.
 
+## Projects, invoices, and payments
+
+Only approved estimates can create projects or invoices. Current contract value is the approved estimate total plus approved Change Orders. Draft, sent, viewed, and rejected Change Orders never affect the contract value. Deposit invoices use the estimate deposit percentage, final invoices use the remaining billable contract value, and PostgreSQL blocks accidental overbilling unless the contractor explicitly confirms it.
+
+Payments are manual records only; ContractorOS does not process money. Active payments determine amount paid and balance due. Overpayments require explicit confirmation and are preserved separately, while voided payments remain in history and trigger a full invoice recalculation.
+
+Public invoice links use revocable UUID tokens and a customer-safe PostgreSQL projection. They never expose internal notes, costs, overhead, markup, profit, or margin.
+
 ## Validation
 
 ```bash
@@ -62,3 +76,4 @@ npm run build
 ```
 
 Live authentication and RLS checks require a configured Supabase project. Validate with two test accounts: create one company and customer under each account, then confirm each account can only query and mutate its own records.
+

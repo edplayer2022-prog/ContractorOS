@@ -1,0 +1,2 @@
+import {notFound} from "next/navigation";import {PublicInvoice} from "@/components/public-invoice";import {getPublicInvoice} from "@/lib/public-documents";export const dynamic="force-dynamic";export default async function PublicInvoicePage({params}:{params:Promise<{token:string}>}){const{token}=await params;const data=await getPublicInvoice(token);if(!data)notFound();return <PublicInvoice data={data}/>}
+

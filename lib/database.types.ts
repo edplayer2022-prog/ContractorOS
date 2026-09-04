@@ -2,6 +2,11 @@ export type Json = string | number | boolean | null | { [key: string]: Json | un
 
 export type EstimateStatus = "draft" | "sent" | "viewed" | "approved" | "rejected" | "expired";
 export type ChangeOrderStatus = "draft" | "sent" | "viewed" | "approved" | "rejected";
+export type ProjectStatus = "upcoming" | "in_progress" | "on_hold" | "completed" | "cancelled";
+export type InvoiceStatus = "draft" | "sent" | "viewed" | "partial" | "paid" | "overdue" | "void";
+export type InvoiceType = "deposit" | "progress" | "final" | "custom";
+export type PaymentMethod = "cash" | "check" | "credit_card" | "ach" | "zelle" | "venmo" | "wire_transfer" | "other";
+export type ProjectCostCategory = "materials" | "labor" | "equipment" | "subcontractor" | "permit" | "disposal" | "fuel" | "other";
 
 export interface Company extends Record<string, unknown> {
   id: string; owner_id: string; name: string; owner_name: string; logo_url: string | null;
@@ -61,6 +66,12 @@ export interface EstimateItem extends Record<string, unknown> {
   material_cost: number; labor_cost: number; direct_cost: number; overhead_amount: number; cost_after_overhead: number;
   profit_amount: number; selling_price: number; created_at: string;
 }
+export interface Project extends Record<string, unknown> { id:string;company_id:string;customer_id:string;job_site_id:string|null;estimate_id:string;project_number:string;project_name:string;status:ProjectStatus;original_contract_value:number;estimated_internal_cost:number;estimated_start_date:string|null;estimated_completion_date:string|null;actual_start_date:string|null;actual_completion_date:string|null;project_manager:string|null;notes:string|null;created_at:string;updated_at:string; }
+export interface Invoice extends Record<string, unknown> { id:string;company_id:string;customer_id:string;job_site_id:string|null;project_id:string|null;estimate_id:string|null;invoice_number:string;invoice_type:InvoiceType;invoice_date:string;due_date:string;po_number:string|null;customer_notes:string|null;internal_notes:string|null;payment_terms:string|null;status:InvoiceStatus;subtotal:number;discount_amount:number;sales_tax_percent:number;sales_tax_amount:number;total:number;amount_paid:number;balance_due:number;overpayment_amount:number;public_token:string|null;public_token_revoked_at:string|null;sent_at:string|null;first_viewed_at:string|null;last_viewed_at:string|null;view_count:number;paid_at:string|null;created_at:string;updated_at:string; }
+export interface InvoiceItem extends Record<string, unknown> { id:string;invoice_id:string;company_id:string;sort_order:number;description:string;quantity:number;unit:string;unit_price:number;taxable:boolean;amount:number;created_at:string; }
+export interface Payment extends Record<string, unknown> { id:string;company_id:string;invoice_id:string;payment_date:string;amount:number;payment_method:PaymentMethod;reference_number:string|null;notes:string|null;overpayment_amount:number;voided_at:string|null;void_reason:string|null;created_at:string; }
+export interface ProjectCost extends Record<string, unknown> { id:string;company_id:string;project_id:string;cost_date:string;category:ProjectCostCategory;description:string;vendor:string|null;amount:number;notes:string|null;created_at:string; }
+export interface FinancialEvent extends Record<string, unknown> { id:number;company_id:string;project_id:string|null;invoice_id:string|null;payment_id:string|null;event_type:string;metadata:Json;created_at:string; }
 
 export interface Database {
   public: {
@@ -79,6 +90,12 @@ export interface Database {
       change_order_approvals: { Row: Record<string, unknown>; Insert: Record<string, unknown>; Update: Record<string, unknown>; Relationships: [] };
       change_order_snapshots: { Row: Record<string, unknown>; Insert: Record<string, unknown>; Update: Record<string, unknown>; Relationships: [] };
       public_request_log: { Row: Record<string, unknown>; Insert: Record<string, unknown>; Update: Record<string, unknown>; Relationships: [] };
+      projects: { Row:Project;Insert:Partial<Project>&Pick<Project,"company_id"|"customer_id"|"estimate_id"|"project_number"|"project_name">;Update:Partial<Project>;Relationships:[] };
+      invoices: { Row:Invoice;Insert:Partial<Invoice>&Pick<Invoice,"company_id"|"customer_id"|"invoice_number"|"invoice_date"|"due_date">;Update:Partial<Invoice>;Relationships:[] };
+      invoice_items: { Row:InvoiceItem;Insert:Partial<InvoiceItem>&Pick<InvoiceItem,"invoice_id"|"company_id"|"description">;Update:Partial<InvoiceItem>;Relationships:[] };
+      payments: { Row:Payment;Insert:Partial<Payment>&Pick<Payment,"company_id"|"invoice_id"|"payment_date"|"amount"|"payment_method">;Update:Partial<Payment>;Relationships:[] };
+      project_costs: { Row:ProjectCost;Insert:Partial<ProjectCost>&Pick<ProjectCost,"company_id"|"project_id"|"cost_date"|"category"|"description"|"amount">;Update:Partial<ProjectCost>;Relationships:[] };
+      financial_events: { Row:FinancialEvent;Insert:Partial<FinancialEvent>&Pick<FinancialEvent,"company_id"|"event_type">;Update:Partial<FinancialEvent>;Relationships:[] };
       users: { Row: { id: string; company_id: string | null; full_name: string | null; created_at: string }; Insert: { id: string; company_id?: string | null; full_name?: string | null }; Update: { company_id?: string | null; full_name?: string | null }; Relationships: [] };
     };
     Views: Record<string, never>;
@@ -93,8 +110,19 @@ export interface Database {
       get_public_change_order: { Args: { target_token: string; raw_ip?: string | null }; Returns: Json };
       approve_public_change_order: { Args: { target_token: string; signer_name: string; signer_email: string; signature_kind: "drawn"|"typed"; signature_value: string; accepted_terms: boolean; request_user_agent?: string | null; raw_ip?: string | null }; Returns: Json };
       reject_public_change_order: { Args: { target_token: string; reason?: string | null; comments?: string | null; raw_ip?: string | null }; Returns: undefined };
+      create_project_from_estimate: { Args:{target_estimate_id:string};Returns:string };
+      update_project_status: { Args:{target_project_id:string;new_status:ProjectStatus};Returns:undefined };
+      create_invoice: { Args:{payload:Json;line_items:Json;allow_overbilling?:boolean};Returns:string };
+      send_invoice: { Args:{target_invoice_id:string};Returns:string };
+      revoke_invoice_link: { Args:{target_invoice_id:string};Returns:undefined };
+      get_public_invoice: { Args:{target_token:string;raw_ip?:string|null};Returns:Json };
+      record_payment: { Args:{target_invoice_id:string;payment_date:string;amount:number;method:PaymentMethod;reference_number?:string|null;notes?:string|null;allow_overpayment?:boolean};Returns:string };
+      void_payment: { Args:{target_payment_id:string;reason:string};Returns:undefined };
+      add_project_cost: { Args:{target_project_id:string;cost_date:string;category:ProjectCostCategory;description:string;vendor:string;amount:number;notes?:string|null};Returns:string };
+      refresh_overdue_invoices: { Args:Record<string,never>;Returns:number };
     };
-    Enums: { estimate_status: EstimateStatus; change_order_status: ChangeOrderStatus; discount_type: "fixed"|"percent"; signature_type: "drawn"|"typed" };
+    Enums: { estimate_status: EstimateStatus; change_order_status: ChangeOrderStatus; discount_type: "fixed"|"percent"; signature_type: "drawn"|"typed";project_status:ProjectStatus;invoice_status:InvoiceStatus;invoice_type:InvoiceType;payment_method:PaymentMethod;project_cost_category:ProjectCostCategory };
     CompositeTypes: Record<string, never>;
   };
 }
+
