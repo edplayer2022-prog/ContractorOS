@@ -1,5 +1,6 @@
 "use server";
 import { redirect } from "next/navigation";
+import {safeAuthRedirect} from "@/lib/auth-redirect";
 import { createClient } from "@/lib/supabase/server";
 
 export type AuthState = { error?: string; success?: string } | null;
@@ -8,7 +9,7 @@ export async function login(_: AuthState, formData: FormData): Promise<AuthState
   const supabase = await createClient();
   const { error } = await supabase.auth.signInWithPassword({ email: String(formData.get("email")), password: String(formData.get("password")) });
   if (error) return { error: "Email or password is incorrect." };
-  redirect("/dashboard");
+  const next=String(formData.get("next")||"");redirect(safeAuthRedirect(next));
 }
 
 export async function signUp(_: AuthState, formData: FormData): Promise<AuthState> {
@@ -16,10 +17,10 @@ export async function signUp(_: AuthState, formData: FormData): Promise<AuthStat
   const password = String(formData.get("password"));
   const fullName = String(formData.get("fullName"));
   if (password.length < 8) return { error: "Password must be at least 8 characters." };
-  const supabase = await createClient();
-  const { data, error } = await supabase.auth.signUp({ email, password, options: { data: { full_name: fullName }, emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"}/auth/callback` } });
+  const supabase = await createClient();const requested=String(formData.get("next")||"");const next=safeAuthRedirect(requested,"/setup");
+  const { data, error } = await supabase.auth.signUp({ email, password, options: { data: { full_name: fullName }, emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000"}/auth/callback?next=${encodeURIComponent(next)}` } });
   if (error) return { error: error.message };
-  if (data.session) redirect("/setup");
+  if (data.session) redirect(next);
   return { success: "Check your inbox to confirm your email, then log in." };
 }
 

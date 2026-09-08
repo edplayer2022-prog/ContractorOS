@@ -46,4 +46,3 @@ export function containsForbiddenPublicField(value: unknown): boolean {
   if (!value || typeof value !== "object") return false;
   return Object.entries(value).some(([key, child]) => FORBIDDEN_PUBLIC_FIELDS.includes(key.toLowerCase() as typeof FORBIDDEN_PUBLIC_FIELDS[number]) || containsForbiddenPublicField(child));
 }
-

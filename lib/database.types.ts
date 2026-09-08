@@ -7,6 +7,8 @@ export type InvoiceStatus = "draft" | "sent" | "viewed" | "partial" | "paid" | "
 export type InvoiceType = "deposit" | "progress" | "final" | "custom";
 export type PaymentMethod = "cash" | "check" | "credit_card" | "ach" | "zelle" | "venmo" | "wire_transfer" | "other";
 export type ProjectCostCategory = "materials" | "labor" | "equipment" | "subcontractor" | "permit" | "disposal" | "fuel" | "other";
+export type MemberRole = "owner"|"admin"|"estimator"|"project_manager"|"employee";
+export type MembershipStatus = "invited"|"active"|"deactivated";
 
 export interface Company extends Record<string, unknown> {
   id: string; owner_id: string; name: string; owner_name: string; logo_url: string | null;
@@ -57,7 +59,7 @@ export interface ChangeOrderItem extends Record<string, unknown> {
 }
 export interface EstimateEvent extends Record<string, unknown> {
   id: number; company_id: string; estimate_id: string; change_order_id: string | null; event_type: string;
-  metadata: Json; created_at: string;
+  metadata: Json; created_at: string;user_id:string|null;user_name:string|null;entity_type:string|null;entity_id:string|null;
 }
 export interface EstimateItem extends Record<string, unknown> {
   id: string; estimate_id: string; company_id: string; rate_library_id: string | null; sort_order: number; category: string;
@@ -72,7 +74,11 @@ export interface Invoice extends Record<string, unknown> { id:string;company_id:
 export interface InvoiceItem extends Record<string, unknown> { id:string;invoice_id:string;company_id:string;sort_order:number;description:string;quantity:number;unit:string;unit_price:number;taxable:boolean;amount:number;created_at:string; }
 export interface Payment extends Record<string, unknown> { id:string;company_id:string;invoice_id:string;payment_date:string;amount:number;payment_method:PaymentMethod;reference_number:string|null;notes:string|null;overpayment_amount:number;voided_at:string|null;void_reason:string|null;created_at:string; }
 export interface ProjectCost extends Record<string, unknown> { id:string;company_id:string;project_id:string;cost_date:string;category:ProjectCostCategory;description:string;vendor:string|null;amount:number;notes:string|null;created_at:string; }
-export interface FinancialEvent extends Record<string, unknown> { id:number;company_id:string;project_id:string|null;invoice_id:string|null;payment_id:string|null;event_type:string;metadata:Json;created_at:string; }
+export interface FinancialEvent extends Record<string, unknown> { id:number;company_id:string;project_id:string|null;invoice_id:string|null;payment_id:string|null;event_type:string;metadata:Json;created_at:string;user_id:string|null;user_name:string|null;entity_type:string|null;entity_id:string|null; }
+export interface CompanyMember extends Record<string,unknown>{id:string;company_id:string;user_id:string;role:MemberRole;status:MembershipStatus;email:string;display_name:string|null;last_active_at:string|null;invited_by:string|null;invited_at:string|null;accepted_at:string|null;deactivated_at:string|null;created_at:string;updated_at:string}
+export interface TeamInvitation extends Record<string,unknown>{id:string;company_id:string;email:string;role:MemberRole;first_name:string|null;last_name:string|null;invited_by:string;invited_at:string;expires_at:string;accepted_at:string|null;revoked_at:string|null;created_at:string}
+export interface ProjectMember extends Record<string,unknown>{project_id:string;user_id:string;role_on_project:string;assigned_by:string|null;assigned_at:string}
+export interface AuditEvent extends Record<string,unknown>{id:number;company_id:string;user_id:string|null;user_name:string|null;event_type:string;entity_type:string;entity_id:string|null;metadata:Json;created_at:string}
 
 export interface Database {
   public: {
@@ -97,10 +103,17 @@ export interface Database {
       payments: { Row:Payment;Insert:Partial<Payment>&Pick<Payment,"company_id"|"invoice_id"|"payment_date"|"amount"|"payment_method">;Update:Partial<Payment>;Relationships:[] };
       project_costs: { Row:ProjectCost;Insert:Partial<ProjectCost>&Pick<ProjectCost,"company_id"|"project_id"|"cost_date"|"category"|"description"|"amount">;Update:Partial<ProjectCost>;Relationships:[] };
       financial_events: { Row:FinancialEvent;Insert:Partial<FinancialEvent>&Pick<FinancialEvent,"company_id"|"event_type">;Update:Partial<FinancialEvent>;Relationships:[] };
-      users: { Row: { id: string; company_id: string | null; full_name: string | null; created_at: string }; Insert: { id: string; company_id?: string | null; full_name?: string | null }; Update: { company_id?: string | null; full_name?: string | null }; Relationships: [] };
+      company_members:{Row:CompanyMember;Insert:Partial<CompanyMember>&Pick<CompanyMember,"company_id"|"user_id"|"role"|"email">;Update:Partial<CompanyMember>;Relationships:[]};
+      team_invitations:{Row:TeamInvitation;Insert:Partial<TeamInvitation>&Pick<TeamInvitation,"company_id"|"email"|"role"|"invited_by"|"expires_at">;Update:Partial<TeamInvitation>;Relationships:[]};
+      project_members:{Row:ProjectMember;Insert:ProjectMember;Update:Partial<ProjectMember>;Relationships:[]};
+      audit_events:{Row:AuditEvent;Insert:Partial<AuditEvent>&Pick<AuditEvent,"company_id"|"event_type"|"entity_type">;Update:Partial<AuditEvent>;Relationships:[]};
+      users: { Row: { id: string; company_id: string | null; full_name: string | null;phone:string|null;avatar_url:string|null;last_active_at:string|null; created_at: string }; Insert: { id: string; company_id?: string | null; full_name?: string | null;phone?:string|null;avatar_url?:string|null;last_active_at?:string|null }; Update: { company_id?: string | null; full_name?: string | null;phone?:string|null;avatar_url?:string|null;last_active_at?:string|null }; Relationships: [] };
     };
     Views: Record<string, never>;
     Functions: {
+      list_my_companies:{Args:Record<string,never>;Returns:Json};
+      switch_company:{Args:{target_company:string};Returns:undefined};
+      update_project_details:{Args:{target_project:string;start_date:string|null;completion_date:string|null;internal_notes:string|null;crew_notes:string|null};Returns:undefined};
       send_estimate: { Args: { target_estimate_id: string }; Returns: string };
       extend_estimate_expiration: { Args: { target_estimate_id: string; new_valid_until: string }; Returns: undefined };
       duplicate_estimate: { Args: { target_estimate_id: string }; Returns: string };
@@ -121,8 +134,20 @@ export interface Database {
       void_payment: { Args:{target_payment_id:string;reason:string};Returns:undefined };
       add_project_cost: { Args:{target_project_id:string;cost_date:string;category:ProjectCostCategory;description:string;vendor:string;amount:number;notes?:string|null};Returns:string };
       refresh_overdue_invoices: { Args:Record<string,never>;Returns:number };
+      has_company_permission:{Args:{target_company_id:string;permission_name:string};Returns:boolean};
+      create_team_invitation:{Args:{target_company:string;target_email:string;target_role:MemberRole;first_name?:string|null;last_name?:string|null};Returns:string};
+      get_public_invitation:{Args:{raw_token:string};Returns:Json};
+      accept_team_invitation:{Args:{raw_token:string};Returns:Json};
+      revoke_team_invitation:{Args:{invitation_id:string};Returns:undefined};
+      change_member_role:{Args:{member_id:string;new_role:MemberRole};Returns:undefined};
+      set_member_status:{Args:{member_id:string;new_status:MembershipStatus};Returns:undefined};
+      assign_project_member:{Args:{target_project:string;target_user:string;project_role?:string};Returns:undefined};
+      touch_last_active:{Args:Record<string,never>;Returns:undefined};
+      update_my_profile:{Args:{new_name:string;new_phone?:string|null;new_avatar_url?:string|null};Returns:undefined};
+      get_assigned_projects:{Args:Record<string,never>;Returns:Json};
+      get_my_company_context:{Args:Record<string,never>;Returns:Json};
     };
-    Enums: { estimate_status: EstimateStatus; change_order_status: ChangeOrderStatus; discount_type: "fixed"|"percent"; signature_type: "drawn"|"typed";project_status:ProjectStatus;invoice_status:InvoiceStatus;invoice_type:InvoiceType;payment_method:PaymentMethod;project_cost_category:ProjectCostCategory };
+    Enums: { estimate_status: EstimateStatus; change_order_status: ChangeOrderStatus; discount_type: "fixed"|"percent"; signature_type: "drawn"|"typed";project_status:ProjectStatus;invoice_status:InvoiceStatus;invoice_type:InvoiceType;payment_method:PaymentMethod;project_cost_category:ProjectCostCategory;member_role:MemberRole;membership_status:MembershipStatus };
     CompositeTypes: Record<string, never>;
   };
 }

@@ -15,4 +15,3 @@ create policy project_costs_owner_select on public.project_costs for select usin
 
 revoke insert,update,delete,truncate,references,trigger on public.projects,public.invoices,public.invoice_items,public.payments,public.project_costs,public.financial_events from authenticated,anon;
 grant select on public.projects,public.invoices,public.invoice_items,public.payments,public.project_costs,public.financial_events to authenticated;
-

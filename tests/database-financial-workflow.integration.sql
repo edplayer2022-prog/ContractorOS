@@ -36,4 +36,3 @@ begin
 end $$;
 rollback;
 select 'PASS' as financial_workflow_integration,0 as qa_records_left;
-

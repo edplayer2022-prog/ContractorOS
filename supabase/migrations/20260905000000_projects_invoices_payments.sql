@@ -212,4 +212,3 @@ revoke execute on function public.get_public_invoice(uuid,text) from public,anon
 grant execute on function public.create_project_from_estimate(uuid),public.update_project_status(uuid,public.project_status),public.create_invoice(jsonb,jsonb,boolean),public.send_invoice(uuid),public.revoke_invoice_link(uuid),public.record_payment(uuid,date,numeric,public.payment_method,text,text,boolean),public.void_payment(uuid,text),public.add_project_cost(uuid,date,public.project_cost_category,text,text,numeric,text),public.refresh_overdue_invoices() to authenticated;
 grant execute on function public.get_public_invoice(uuid,text) to anon,authenticated;
 comment on function public.get_public_invoice(uuid,text) is 'Customer-safe invoice projection. Never returns internal notes, internal costs, profit, markup, overhead, or margin.';
-

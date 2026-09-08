@@ -27,4 +27,3 @@ export async function getPublicInvoice(token:string):Promise<PublicInvoice|null>
   if(!PUBLIC_TOKEN_PATTERN.test(token))return null;const supabase=await createClient();const{data,error}=await supabase.rpc("get_public_invoice",{target_token:token,raw_ip:await requestIp()});
   if(error||!data||containsForbiddenPublicField(data))return null;return data as unknown as PublicInvoice;
 }
-

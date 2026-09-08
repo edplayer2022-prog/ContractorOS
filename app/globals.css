@@ -27,6 +27,17 @@ th { background: #f8fafc; color: #64748b; font-size: .7rem; letter-spacing: .04e
 th, td { border-bottom: 1px solid #e2e8f0; padding: .8rem 1rem; white-space: nowrap; }
 tbody tr:hover { background: #f8fafc; }
 
+.team-table td { white-space: normal; overflow-wrap: anywhere; }
+.team-table td:nth-child(2) { max-width: 240px; }
+@media (max-width: 767px) {
+  .team-table, .team-table tbody { display: block; }
+  .team-table thead { display: none; }
+  .team-table tr { display: grid; gap: .6rem; padding: 1rem; border-bottom: 1px solid #e2e8f0; }
+  .team-table td { display: grid; grid-template-columns: 85px minmax(0, 1fr); gap: .75rem; align-items: center; padding: 0; border: 0; max-width: none !important; }
+  .team-table td::before { content: attr(data-label); font-size: .7rem; font-weight: 700; text-transform: uppercase; color: #64748b; }
+  .team-table select, .team-table button { min-height: 44px; }
+}
+
 @media print {
   .no-print { display: none !important; }
   body { background: white; }

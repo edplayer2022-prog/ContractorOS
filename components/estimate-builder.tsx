@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import {Can} from "@/components/permission-context";
 import { useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { ArrowDown, ArrowUp, Copy, Eye, Library, Plus, Save, Search, Trash2, X } from "lucide-react";
@@ -228,7 +229,7 @@ export function EstimateBuilder({ company, customers, sites, rates, estimate, ex
         </Card>
       </div>
 
-      <div className="sticky bottom-3 z-20 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-slate-200 bg-white/95 p-3 shadow-lg backdrop-blur"><div className="flex flex-wrap gap-2">{estimate && <><Button type="button" variant="danger" onClick={removeEstimate} loading={loading}><Trash2 className="h-4 w-4" /><span className="hidden sm:inline">Delete</span></Button><Button type="button" variant="secondary" onClick={duplicateEstimate} loading={loading}><Copy className="h-4 w-4" /><span className="hidden sm:inline">Duplicate Estimate</span></Button><Link href={`/estimates/${estimate.id}/customer`}><Button type="button" variant="secondary"><Eye className="h-4 w-4" /><span className="hidden sm:inline">Preview Customer Estimate</span></Button></Link></>}</div><Button loading={loading}><Save className="h-4 w-4" />{status === "draft" ? "Save Draft" : "Save Estimate"}</Button></div>
+      <div className="sticky bottom-3 z-20 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-slate-200 bg-white/95 p-3 shadow-lg backdrop-blur"><div className="flex flex-wrap gap-2">{estimate && <><Can permission="estimates.delete"><Button type="button" variant="danger" onClick={removeEstimate} loading={loading}><Trash2 className="h-4 w-4" /><span className="hidden sm:inline">Delete</span></Button></Can><Button type="button" variant="secondary" onClick={duplicateEstimate} loading={loading}><Copy className="h-4 w-4" /><span className="hidden sm:inline">Duplicate Estimate</span></Button><Link href={`/estimates/${estimate.id}/customer`}><Button type="button" variant="secondary"><Eye className="h-4 w-4" /><span className="hidden sm:inline">Preview Customer Estimate</span></Button></Link></>}</div><Button loading={loading}><Save className="h-4 w-4" />{status === "draft" ? "Save Draft" : "Save Estimate"}</Button></div>
     </form>
     {libraryOpen && <RateLibraryModal rates={rates} onClose={() => setLibraryOpen(false)} onSelect={addRate} />}
   </>;

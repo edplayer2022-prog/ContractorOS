@@ -1,3 +1,4 @@
+import{hasPermission}from"@/lib/permission-policy";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { FileText } from "lucide-react";
@@ -11,11 +12,11 @@ import type { EstimateEvent } from "@/lib/database.types";
 
 const tones={draft:"slate",sent:"blue",viewed:"orange",approved:"green",rejected:"red",expired:"slate"} as const;
 export default async function EditEstimatePage({params}:{params:Promise<{id:string}>}){
-  const{id}=await params;const{supabase,company}=await getAuthContext();
+  const{id}=await params;const{supabase,company,membership}=await getAuthContext();
   const[{data:estimate},{data:items},{data:customers},{data:sites},{data:rates},{data:events},{data:changeOrders},{data:invoices}]=await Promise.all([
     supabase.from("estimates").select("*").eq("id",id).single(),supabase.from("estimate_items").select("*").eq("estimate_id",id).order("sort_order"),supabase.from("customers").select("*").order("name"),supabase.from("job_sites").select("*").order("job_name"),supabase.from("rate_library").select("*").order("service_name"),supabase.from("estimate_events").select("*").eq("estimate_id",id).order("created_at",{ascending:false}),supabase.from("change_orders").select("*").eq("estimate_id",id).order("created_at",{ascending:false}),supabase.from("invoices").select("id,invoice_number,invoice_type,status,total,amount_paid").eq("estimate_id",id).order("created_at",{ascending:false})
   ]);if(!estimate)notFound();const customer=customers?.find(row=>row.id===estimate.customer_id);const locked=estimate.status==="approved"||estimate.status==="rejected";const depositInvoices=(invoices||[]).filter(row=>row.invoice_type==="deposit"&&row.status!=="void"),depositInvoiced=depositInvoices.reduce((sum,row)=>sum+Number(row.total),0),depositPaid=depositInvoices.reduce((sum,row)=>sum+Number(row.amount_paid),0);
-  return <><PageHeader title={estimate.estimate_number} description={`${customer?.name||"Customer"} · ${estimate.project_name}`} action={<EstimateWorkflowActions id={id} status={estimate.status} token={estimate.public_token} customerEmail={customer?.email}/>}/>
+  return <><PageHeader title={estimate.estimate_number} description={`${customer?.name||"Customer"} · ${estimate.project_name}`} action={hasPermission(membership?.role,"estimates.send")&&<EstimateWorkflowActions id={id} status={estimate.status} token={estimate.public_token} customerEmail={customer?.email}/>}/>
     <div className="mb-6 grid gap-5 xl:grid-cols-[1fr_360px]">
       <Card className="p-5"><div className="flex flex-wrap items-center justify-between gap-3"><div><p className="text-xs font-bold uppercase tracking-wide text-slate-400">Estimate Status</p><div className="mt-2 flex items-center gap-3"><Badge tone={tones[estimate.status]}>{estimate.status}</Badge><strong className="text-2xl">{currency(estimate.total)}</strong></div></div><div className="grid grid-cols-2 gap-x-8 gap-y-2 text-sm"><DateLabel label="Created" value={estimate.created_at}/><DateLabel label="Sent" value={estimate.sent_at}/><DateLabel label="First Viewed" value={estimate.first_viewed_at}/><DateLabel label="Last Viewed" value={estimate.last_viewed_at}/><DateLabel label={estimate.status==="rejected"?"Rejected":"Approved"} value={estimate.status==="rejected"?estimate.rejected_at:estimate.approved_at}/><div><p className="text-xs text-slate-400">View Count</p><p className="font-semibold">{estimate.view_count}</p></div></div></div>
         {locked&&<div className="mt-5 rounded-lg bg-slate-50 p-4 text-sm text-slate-600">This {estimate.status} estimate is preserved as a historical document. Create a new estimate version or a change order instead of changing the approved response.</div>}
@@ -29,4 +30,3 @@ export default async function EditEstimatePage({params}:{params:Promise<{id:stri
 }
 function DateLabel({label,value}:{label:string;value:string|null}){return <div><p className="text-xs text-slate-400">{label}</p><p className="font-semibold">{shortDate(value)}</p></div>}
 function MoneyLabel({label,value}:{label:string;value:number}){return <div><p className="text-xs font-bold uppercase text-orange-700">{label}</p><p className="mt-1 text-lg font-bold text-orange-950">{currency(value)}</p></div>}
-

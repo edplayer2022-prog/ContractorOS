@@ -1,0 +1,8 @@
+"use client";
+import {useState} from "react";import {useRouter} from "next/navigation";import {toast} from "sonner";
+import {Button,Input,Textarea} from "@/components/ui";import {createClient} from "@/lib/supabase/client";
+export function ProjectDetailsForm({project}:{project:{id:string;estimated_start_date:string|null;estimated_completion_date:string|null;notes:string|null;employee_notes?:unknown}}){
+ const[busy,setBusy]=useState(false);const router=useRouter();
+ async function save(e:React.FormEvent<HTMLFormElement>){e.preventDefault();const f=new FormData(e.currentTarget);setBusy(true);const {error}=await createClient().rpc("update_project_details",{target_project:project.id,start_date:String(f.get("start")||"")||null,completion_date:String(f.get("end")||"")||null,internal_notes:String(f.get("internal")||""),crew_notes:String(f.get("crew")||"")});setBusy(false);if(error)toast.error(error.message);else{toast.success("Schedule and notes updated");router.refresh();}}
+ return <details className="mt-4 border-t pt-4"><summary className="cursor-pointer font-semibold">Edit schedule and project notes</summary><form onSubmit={save} className="mt-4 grid gap-4 sm:grid-cols-2"><Input type="date" name="start" label="Estimated Start" defaultValue={project.estimated_start_date||""}/><Input type="date" name="end" label="Estimated Completion" defaultValue={project.estimated_completion_date||""}/><Textarea name="internal" label="Internal Project Notes" defaultValue={project.notes||""}/><Textarea name="crew" label="Employee Notes — visible to assigned employees" defaultValue={typeof project.employee_notes==="string"?project.employee_notes:""}/><Button loading={busy}>Save schedule and notes</Button></form></details>;
+}

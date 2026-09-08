@@ -41,4 +41,3 @@ export function projectFinancials(original: number, approvedChanges: number, inv
 
 export function depositAmount(contractValue: number, percent: number) { return money(money(contractValue) * money(percent) / 100); }
 export function finalInvoiceAmount(contractValue: number, previouslyInvoiced: number) { return money(Math.max(0, money(contractValue) - money(previouslyInvoiced))); }
-

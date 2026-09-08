@@ -26,4 +26,3 @@ export function PublicInvoice({data}:{data:Data}) {
 function Label({children}:{children:React.ReactNode}){return <p className="mb-2 text-xs font-bold uppercase tracking-wide text-slate-400">{children}</p>}
 function Info({label,value}:{label:string;value:string}){return <div><Label>{label}</Label><p className="whitespace-pre-wrap text-sm text-slate-600">{value}</p></div>}
 function Row({label,value}:{label:string;value:number|string}){return <div className="flex justify-between"><span className="text-slate-500">{label}</span><span>{typeof value==="number"?currency(value):value}</span></div>}
-

@@ -20,9 +20,10 @@ Mobile-first estimating MVP for small contractors in the United States. Built wi
 - Executive dashboard with period comparisons, revenue trend, and financial KPIs
 - Sales, estimates, projects, invoices, AR aging, payments, profitability, and customer reports
 - Company-local date filters, project health rules, cost budget variance, CSV export, and print-friendly reports
-- Owner-scoped PostgreSQL RLS on every business table
+- Active company membership and role-scoped PostgreSQL RLS on every business table
+- Team invitations, five roles, activation controls, project assignments, user profiles, and attributed audit log
 
-Live payment processing, accounting integrations, teams, subscription billing, payroll, and AI are intentionally excluded from this version.
+Live payment processing, accounting integrations, subscription billing, payroll, and AI are intentionally excluded from this version.
 
 ## Local setup
 
@@ -35,6 +36,10 @@ Live payment processing, accounting integrations, teams, subscription billing, p
    - `supabase/migrations/20260905000000_projects_invoices_payments.sql`
    - `supabase/migrations/20260905010000_financial_write_hardening.sql`
    - `supabase/migrations/20260906000000_reporting_analytics.sql`
+   - `supabase/migrations/20260907000000_team_roles_permissions.sql`
+   - `supabase/migrations/20260907010000_team_security_hardening.sql`
+   - `supabase/migrations/20260907020000_team_workflow_completion.sql`
+   - `supabase/migrations/20260908000000_team_event_and_assignment_guards.sql`
 3. Copy `.env.example` to `.env.local` and add the project URL and anon key.
 4. Add `NEXT_PUBLIC_SITE_URL=http://localhost:3000` to `.env.local`.
 5. In Supabase Auth URL Configuration, add `http://localhost:3000/auth/callback` as a redirect URL.
@@ -85,4 +90,4 @@ npm run test:calculations
 npm run build
 ```
 
-Live authentication and RLS checks require a configured Supabase project. Validate with two test accounts: create one company and customer under each account, then confirm each account can only query and mutate its own records.
+Live authentication and RLS checks require a configured Supabase project. Run `supabase/tests/team-rls.sql` in the SQL Editor: its 15 scenarios use disposable transactional fixtures and roll back every change. See [Team roles and security](docs/team-roles.md) for the access matrix, migration details, test evidence, and implementation inventory.

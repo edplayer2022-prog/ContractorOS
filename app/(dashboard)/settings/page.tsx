@@ -1,4 +1,5 @@
 import { CompanyForm } from "@/components/company-form";
 import { PageHeader } from "@/components/ui";
 import { getAuthContext } from "@/lib/data";
-export default async function SettingsPage(){const {user,company}=await getAuthContext();return <><PageHeader title="Settings" description="Manage company details and estimating defaults."/><CompanyForm company={company} userId={user.id} email={user.email}/></>}
+import{CompanyProfileForm}from"@/components/company-profile-form";import{hasPermission}from"@/lib/permission-policy";import Link from"next/link";
+export default async function SettingsPage(){const {user,company,membership}=await getAuthContext();const financial=hasPermission(membership?.role,"settings.financial");return <><PageHeader title="Settings" description={financial?"Manage company details and financial defaults.":"Manage the company profile."}/><div className="mb-5 flex gap-3"><Link className="text-sm font-semibold text-orange-600" href="/team">Team Members</Link>{hasPermission(membership?.role,"audit.view")&&<Link className="text-sm font-semibold text-orange-600" href="/settings/audit-log">Audit Log</Link>}</div>{financial?<CompanyForm company={company} userId={user.id} email={user.email}/>:<CompanyProfileForm company={company!}/>}</>}

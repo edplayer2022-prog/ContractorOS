@@ -12,4 +12,3 @@ test("past-due unpaid sent invoice is overdue",()=>assert.equal(invoicePaymentSt
 test("voided payment can restore sent status",()=>assert.equal(invoicePaymentStatus(3000,0,"partial"),"partial"));
 test("invoice calculation clamps invalid values and rounds currency",()=>{const value=calculateInvoice([{quantity:Number.NaN,unitPrice:12,taxable:true},{quantity:3,unitPrice:10.005,taxable:true}],1,7.25);assert.equal(value.subtotal,30.03);assert.equal(value.total,31.13);});
 test("project balances use contract, invoices, and payments",()=>assert.deepEqual(projectFinancials(10000,2000,8000,3000,4500),{originalContractValue:10000,approvedChangeOrders:2000,currentContractValue:12000,totalInvoiced:8000,totalPaid:3000,outstandingBalance:5000,unbilledAmount:4000,projectedProfit:7500}));
-

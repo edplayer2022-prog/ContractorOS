@@ -8,7 +8,7 @@ import { unitLabel } from "@/lib/estimate-options";
 import { currency } from "@/lib/utils";
 import { Badge, Card, EmptyState, Input, Select } from "@/components/ui";
 
-export function RateLibraryList({ items }: { items: RateLibraryItem[] }) {
+export function RateLibraryList({ items,canManage=true }: { items: RateLibraryItem[];canManage?:boolean }) {
   const [query, setQuery] = useState("");
   const [category, setCategory] = useState("all");
   const categories = useMemo(() => [...new Set(items.map((item) => item.category))].sort(), [items]);
@@ -26,7 +26,7 @@ export function RateLibraryList({ items }: { items: RateLibraryItem[] }) {
     </div></Card>
     <Card className="overflow-hidden">{!visible.length ? <EmptyState icon={<Library className="h-6 w-6" />} title="No matching services" description="Adjust your search or add a custom service." /> : <>
       <div className="hidden grid-cols-[1.3fr_130px_130px_170px_100px] gap-4 border-b bg-slate-50 px-5 py-3 text-xs font-semibold uppercase tracking-wide text-slate-500 md:grid"><span>Service</span><span>Unit</span><span>Material</span><span>Labor</span><span>Taxable</span></div>
-      <div className="divide-y divide-slate-100">{visible.map((item) => <Link href={`/rate-library/${item.id}`} key={item.id} className="grid gap-3 p-4 transition hover:bg-slate-50 md:grid-cols-[1.3fr_130px_130px_170px_100px] md:items-center md:gap-4 md:px-5">
+      <div className="divide-y divide-slate-100">{visible.map((item) => <Link href={canManage?`/rate-library/${item.id}`:"#"} onClick={e=>{if(!canManage)e.preventDefault();}} key={item.id} className="grid gap-3 p-4 transition hover:bg-slate-50 md:grid-cols-[1.3fr_130px_130px_170px_100px] md:items-center md:gap-4 md:px-5">
         <div><div className="flex flex-wrap items-center gap-2"><p className="font-semibold text-slate-900">{item.service_name}</p>{item.is_sample && <Badge tone="orange">Sample</Badge>}</div><p className="line-clamp-1 text-xs text-slate-500">{item.category}{item.description ? ` · ${item.description}` : ""}</p></div>
         <span className="text-sm text-slate-600"><span className="mr-2 text-xs text-slate-400 md:hidden">Unit</span>{unitLabel(item.unit)}</span>
         <span className="text-sm text-slate-600"><span className="mr-2 text-xs text-slate-400 md:hidden">Material</span>{currency(item.material_cost_per_unit)}</span>
