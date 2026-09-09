@@ -23,7 +23,7 @@ Mobile-first estimating MVP for small contractors in the United States. Built wi
 - Active company membership and role-scoped PostgreSQL RLS on every business table
 - Team invitations, five roles, activation controls, project assignments, user profiles, and attributed audit log
 
-Subscription plans, usage limits, trial and billing controls are implemented in the current working version; production rollout requires the subscription migrations below. Stripe Checkout/Portal/webhook adapters are prepared but disabled until explicitly configured and validated. Live customer payment processing, accounting integrations, payroll, and AI remain excluded.
+Subscription plans, usage limits, trial and billing controls are included. New installations require the subscription migrations below. Stripe Checkout/Portal/webhook adapters are prepared but disabled until explicitly configured and validated. Live customer payment processing, accounting integrations, payroll, and AI remain excluded.
 
 ## Local setup
 
