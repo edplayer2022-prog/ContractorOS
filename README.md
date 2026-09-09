@@ -23,7 +23,7 @@ Mobile-first estimating MVP for small contractors in the United States. Built wi
 - Active company membership and role-scoped PostgreSQL RLS on every business table
 - Team invitations, five roles, activation controls, project assignments, user profiles, and attributed audit log
 
-Live payment processing, accounting integrations, subscription billing, payroll, and AI are intentionally excluded from this version.
+Subscription plans, usage limits, trial and billing controls are implemented in the current working version; production rollout requires the subscription migrations below. Stripe Checkout/Portal/webhook adapters are prepared but disabled until explicitly configured and validated. Live customer payment processing, accounting integrations, payroll, and AI remain excluded.
 
 ## Local setup
 
@@ -40,6 +40,9 @@ Live payment processing, accounting integrations, subscription billing, payroll,
    - `supabase/migrations/20260907010000_team_security_hardening.sql`
    - `supabase/migrations/20260907020000_team_workflow_completion.sql`
    - `supabase/migrations/20260908000000_team_event_and_assignment_guards.sql`
+   - `supabase/migrations/20260909000000_subscription_billing.sql`
+   - `supabase/migrations/20260909010000_subscription_provider_boundary.sql`
+   - `supabase/migrations/20260909020000_subscription_downgrade_requests.sql`
 3. Copy `.env.example` to `.env.local` and add the project URL and anon key.
 4. Add `NEXT_PUBLIC_SITE_URL=http://localhost:3000` to `.env.local`.
 5. In Supabase Auth URL Configuration, add `http://localhost:3000/auth/callback` as a redirect URL.
@@ -91,3 +94,7 @@ npm run build
 ```
 
 Live authentication and RLS checks require a configured Supabase project. Run `supabase/tests/team-rls.sql` in the SQL Editor: its 15 scenarios use disposable transactional fixtures and roll back every change. See [Team roles and security](docs/team-roles.md) for the access matrix, migration details, test evidence, and implementation inventory.
+
+## Subscription billing
+
+See [Subscription architecture and rollout](docs/subscription-billing.md) for plan policy, monthly usage, legacy access, downgrade behavior, Stripe configuration and validation status. This is the SaaS subscription charged to contractors, never Stripe Connect or customer-to-contractor card payments.

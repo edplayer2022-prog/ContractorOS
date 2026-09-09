@@ -2,9 +2,11 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import type { Database } from "@/lib/database.types";
 import { permissionForPath } from "@/lib/permission-policy";
+import { featureForPermission, type SubscriptionAccess } from "@/lib/plans";
 export async function updateSession(request: NextRequest) {
  let response = NextResponse.next({ request });
  const path = request.nextUrl.pathname;
+ if (path === "/api/stripe/webhook" || path === "/pricing") return response;
  const supabase = createServerClient<Database>(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, {
  cookies: { getAll: () => request.cookies.getAll(), setAll(cookiesToSet) {
   cookiesToSet.forEach(({ name, value }) => request.cookies.set(name, value));
@@ -36,10 +38,21 @@ export async function updateSession(request: NextRequest) {
   if (switchError) return new NextResponse("Access Denied", { status: 403 });
  }
  if (path === "/setup") return redirectTo("/dashboard");
+ if (path.startsWith("/settings/billing") && member.role !== "owner") return redirectTo("/access-denied");
  const required = permissionForPath(path);
  if (required) {
-  const { data: allowed } = await supabase.rpc("has_company_permission", { target_company_id: member.company_id, permission_name: required });
+  const { data: allowed } = await supabase.rpc("role_has_company_permission", { target_company_id: member.company_id, permission_name: required });
   if (!allowed) return redirectTo("/access-denied");
+  const feature = featureForPermission(required);
+  if (feature) {
+   const { data: included } = await supabase.rpc("has_company_plan_feature", { target_company: member.company_id, feature });
+   if (!included) return redirectTo(`/upgrade?feature=${feature}`);
+  }
+ }
+ if (path === "/estimates/new") {
+  const { data } = await supabase.rpc("get_subscription_access");
+  const access = data as unknown as SubscriptionAccess | null;
+  if (access?.effective_plan === "free" && (access.estimates_created || 0) >= 3) return redirectTo("/upgrade?feature=estimates.unlimited");
  }
  const dashboard = member.role === "owner" || member.role === "admin" ? "/dashboard" : `/dashboard/${member.role}`;
  if (path.startsWith("/dashboard") && path !== dashboard) return redirectTo(dashboard);

@@ -1,2 +1,2 @@
 import{redirect}from"next/navigation";import{getAuthContext}from"@/lib/data";import{hasPermission,type Permission}from"@/lib/permission-policy";export*from"@/lib/permission-policy";
-export async function requirePermission(permission:Permission){const context=await getAuthContext();if(!hasPermission(context.membership?.role,permission))redirect("/access-denied");return context}
+export async function requirePermission(permission:Permission){const context=await getAuthContext();if(!hasPermission(context.membership?.role,permission))redirect("/access-denied");const{data:allowed}=await context.supabase.rpc("has_company_permission",{target_company_id:context.company!.id,permission_name:permission});if(!allowed)redirect("/upgrade");return context}

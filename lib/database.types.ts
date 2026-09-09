@@ -111,6 +111,13 @@ export interface Database {
     };
     Views: Record<string, never>;
     Functions: {
+      get_subscription_access:{Args:Record<string,never>;Returns:Json};
+      start_pro_trial:{Args:Record<string,never>;Returns:undefined};
+      schedule_free_downgrade:{Args:Record<string,never>;Returns:undefined};
+      resume_local_subscription:{Args:Record<string,never>;Returns:undefined};
+      request_plan_downgrade:{Args:{target_plan:string};Returns:Json};
+      has_company_plan_feature:{Args:{target_company:string;feature:string};Returns:boolean};
+      role_has_company_permission:{Args:{target_company_id:string;permission_name:string};Returns:boolean};
       list_my_companies:{Args:Record<string,never>;Returns:Json};
       switch_company:{Args:{target_company:string};Returns:undefined};
       update_project_details:{Args:{target_project:string;start_date:string|null;completion_date:string|null;internal_notes:string|null;crew_notes:string|null};Returns:undefined};

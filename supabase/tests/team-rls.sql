@@ -21,6 +21,8 @@ begin
  insert into public.companies(owner_id,name,owner_name)values(owner_a,'QA team A','QA Owner A') returning id into c_a;
  perform set_config('request.jwt.claim.sub',owner_b::text,true);
  insert into public.companies(owner_id,name,owner_name)values(owner_b,'QA team B','QA Owner B') returning id into c_b;
+ -- Role suite preserves full legacy access; plan boundaries have a separate suite.
+ update public.company_subscriptions set legacy_access=true where company_id in(c_a,c_b);
  insert into public.customers(company_id,name)values(c_a,'QA customer A')returning id into customer_a;
  insert into public.customers(company_id,name)values(c_b,'QA customer B')returning id into customer_b;
  insert into public.estimates(company_id,customer_id,estimate_number,valid_until,project_name,status,total)values(c_a,customer_a,'QA-A',current_date+30,'QA A','approved',1000)returning id into e_a;
